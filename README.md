@@ -26,6 +26,7 @@ This repository contains all the source code and final reports for the final yea
 - Johan B. Agustine (U2203119)
 
 **Guide:** Dr. Amitha Mathew
+##
 
 ### Group 12
 **Project:** Seizure Localization Using Quantum Algorithms([GROUP-12-Seizure Localization Using Quantum Algorithms](https://github.com/RSET-CSE-DEPARTMENT/RSET2022-26-S8-Beta/tree/main/Seizure%20Localization%20Using%20Quantum%20Algorithms))
