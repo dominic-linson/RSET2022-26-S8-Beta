@@ -77,6 +77,18 @@ This repository contains all the source code and final reports for the final yea
 **Guide:** Ms. Jisha Mary Jose
 
 ---
+
+### Group 11
+**Project:** [QuietSOS-Fall Detection and Alerting System](https://github.com/RSET-CSE-DEPARTMENT/RSET2022-26-S8-Beta/tree/main/GROUP%2011%20QUIETSOS%20FALL%20DETECTION%20AND%20ALERTING%20SYSTEM)
+**Members:**
+- Gokul Raj (U2203101)
+- Irene Ajith (U2203105)
+- Jefry Joseph (U2203111)
+- Jesel Gibi George (U2203112)
+
+**Guide:** Ms. Ann Grace Attokaren
+
+---
 ### Group 15
 **Project:** [Corporate Email Summarization and Task Extraction](https://github.com/RSET-CSE-DEPARTMENT/RSET2022-26-S8-Beta/tree/main/Group%2015%20Corporate%20Email%20Summarization%20and%20Task%20Extraction)
 **Members:**
