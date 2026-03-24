@@ -1,0 +1,38 @@
+.dark-bg {
+background-color: #0b1220;
+color: white;
+min-height: 100vh;
+}
+
+.status-card {
+border-radius: 15px;
+border: none;
+color: white;
+}
+
+.safe {
+background: linear-gradient(45deg,#00c853,#64dd17);
+}
+
+.danger {
+background: linear-gradient(45deg,#d50000,#ff1744);
+}
+
+.info {
+background: linear-gradient(45deg,#2962ff,#448aff);
+}
+
+.table-hover tbody tr:hover {
+background: rgba(0,255,200,0.08);
+transition: 0.2s;
+}
+
+.card {
+border-radius: 15px;
+border: 1px solid rgba(255,255,255,0.05);
+}
+
+.warning {
+    background: linear-gradient(45deg,#ffb300,#ffca28);
+    color: black;
+}

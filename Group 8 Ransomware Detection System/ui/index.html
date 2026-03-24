@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RBDS Dashboard</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<!-- Firebase COMPAT SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+</head>
+
+<body class="dark-bg">
+
+<nav class="navbar navbar-dark bg-black px-4 shadow">
+<span class="navbar-brand fw-bold">RBDS Dashboard</span>
+
+<div>
+<a href="index.html" class="nav-link d-inline text-light">Dashboard</a>
+<a href="logs.html" class="nav-link d-inline text-light">Logs</a>
+<a href="analytics.html" class="nav-link d-inline text-light">Analytics</a>
+</div>
+</nav>
+
+<div class="container mt-4">
+
+<div class="row g-4">
+
+<!-- System Status -->
+<div class="col-md-4">
+<div class="card status-card safe" id="statusCard">
+<div class="card-body">
+<h5>System Status</h5>
+<h2 id="systemStatus">SAFE</h2>
+</div>
+</div>
+</div>
+
+<!-- Processes Monitored -->
+<div class="col-md-4">
+<div class="card status-card info">
+<div class="card-body">
+<h5>Processes Monitored</h5>
+<h2 id="processCount">Loading...</h2>
+</div>
+</div>
+</div>
+
+<!-- Threats Blocked -->
+<div class="col-md-4">
+<div class="card status-card danger">
+<div class="card-body">
+<h5>Threats Blocked</h5>
+<h2 id="killCount">Loading...</h2>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="alert alert-danger mt-4 d-none" id="alertBox">
+⚠ Ransomware Activity Detected!
+</div>
+
+<!-- ================= LATEST LOG SECTION ================= -->
+
+<h4 class="text-info mt-5 mb-3 fw-bold text-center">
+Latest Detection Window
+</h4>
+
+<div class="card bg-dark border-secondary shadow-lg">
+<div class="card-body">
+
+<div class="table-responsive">
+<table class="table table-dark table-hover align-middle mb-0">
+<thead>
+<tr>
+<th>Window ID</th>
+<th>LightGBM Verdict</th>
+<th>LSTM Verdict</th>
+<th>Action Taken</th>
+<th>Timestamp</th>
+</tr>
+</thead>
+
+<tbody id="latestLogTable">
+<tr>
+<td colspan="5" class="text-center text-muted">
+Loading latest log...
+</td>
+</tr>
+</tbody>
+
+</table>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+checkAuth();
+</script>
+
+<!-- ================= FIREBASE DASHBOARD LOGIC ================= -->
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAUvoAxwLMgwxwStJK4Q_xyGumLLY2kNU8",
+  authDomain: "rbd-model.firebaseapp.com",
+  projectId: "rbd-model",
+  storageBucket: "rbd-model.firebasestorage.app",
+  messagingSenderId: "497139499566",
+  appId: "1:497139499566:web:d05c0357fdcb5f1891d5bf",
+  measurementId: "G-BB11ZXYQG7"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+db.collection("research")
+  .orderBy("timestamp", "desc")
+  .get()
+  .then((querySnapshot) => {
+
+    const totalProcesses = querySnapshot.size;
+    let killCount = 0;
+
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.action === "kill") {
+            killCount++;
+        }
+    });
+
+    document.getElementById("processCount").innerText = totalProcesses;
+    document.getElementById("killCount").innerText = killCount;
+
+    const statusCard = document.getElementById("statusCard");
+    const statusText = document.getElementById("systemStatus");
+    const alertBox = document.getElementById("alertBox");
+    const latestTable = document.getElementById("latestLogTable");
+
+    latestTable.innerHTML = "";
+
+    if (!querySnapshot.empty) {
+
+        const latestDoc = querySnapshot.docs[0];
+        const latestData = latestDoc.data();
+        const latestAction = latestData.action;
+
+        // System Status based ONLY on latest
+        if (latestAction === "kill") {
+            statusText.innerText = "THREAT DETECTED";
+            statusCard.classList.remove("safe");
+            statusCard.classList.add("warning");
+            alertBox.classList.remove("d-none");
+        } else {
+            statusText.innerText = "SAFE";
+            statusCard.classList.remove("warning");
+            statusCard.classList.add("safe");
+            alertBox.classList.add("d-none");
+        }
+
+        // Format timestamp
+        let formattedTime = "-";
+        if (latestData.timestamp && latestData.timestamp.toDate) {
+            formattedTime = latestData.timestamp.toDate().toLocaleString('en-IN');
+        }
+
+        // Render Latest Log
+        latestTable.innerHTML = `
+        <tr>
+            <td>${latestDoc.id}</td>
+            <td class="text-warning">${latestData.lightgbm || "-"}</td>
+            <td class="text-info">${latestData.lstm || "-"}</td>
+            <td class="${latestAction === "kill" ? "text-danger" : "text-success"}">
+                ${latestAction || "-"}
+            </td>
+            <td class="text-secondary">${formattedTime}</td>
+        </tr>
+        `;
+
+    } else {
+
+        latestTable.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-warning text-center">
+                No logs available
+            </td>
+        </tr>
+        `;
+    }
+
+}).catch((error) => {
+    console.error("Dashboard error:", error);
+});
+</script>
+
+</body>
+</html>

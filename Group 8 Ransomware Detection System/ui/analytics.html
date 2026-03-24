@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RBDS Analytics</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+.chart-container {
+    max-width: 550px;
+    margin: 60px auto;
+    background: #1e1e2f;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+</style>
+
+</head>
+
+<body class="dark-bg">
+
+<nav class="navbar navbar-dark bg-black px-4 shadow">
+<span class="navbar-brand fw-bold">RBDS Analytics</span>
+
+<div>
+<a href="index.html" class="nav-link d-inline text-light">Dashboard</a>
+<a href="logs.html" class="nav-link d-inline text-light">Logs</a>
+<a href="analytics.html" class="nav-link d-inline text-light">Analytics</a>
+</div>
+</nav>
+
+<div class="container">
+
+<div class="chart-container text-center">
+
+<h4 class="text-light mb-4 fw-bold">Detection Distribution</h4>
+
+<div style="height:420px;">
+<canvas id="threatChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+<script src="js/auth.js"></script>
+<script>
+checkAuth();
+</script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAUvoAxwLMgwxwStJK4Q_xyGumLLY2kNU8",
+  authDomain: "rbd-model.firebaseapp.com",
+  projectId: "rbd-model",
+  storageBucket: "rbd-model.firebasestorage.app",
+  messagingSenderId: "497139499566",
+  appId: "1:497139499566:web:d05c0357fdcb5f1891d5bf",
+  measurementId: "G-BB11ZXYQG7"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Custom Plugin for Center Percentage
+const centerTextPlugin = {
+    id: 'centerText',
+    beforeDraw(chart) {
+        const { width } = chart;
+        const { height } = chart;
+        const ctx = chart.ctx;
+        ctx.restore();
+
+        const ransomware = chart.data.datasets[0].data[0];
+        const benign = chart.data.datasets[0].data[1];
+        const total = ransomware + benign;
+
+        const percentage = total > 0 ? ((ransomware / total) * 100).toFixed(1) : 0;
+
+        ctx.font = "bold 30px Arial";
+        ctx.fillStyle = "#ff4d6d";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        ctx.fillText(percentage + "%", width / 2, height / 2 - 10);
+
+        ctx.font = "14px Arial";
+        ctx.fillStyle = "#cccccc";
+        ctx.fillText("Ransomware", width / 2, height / 2 + 18);
+
+        ctx.save();
+    }
+};
+
+db.collection("research").get().then((querySnapshot) => {
+
+    let ransomwareCount = 0;
+    let benignCount = 0;
+
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.action === "kill") {
+            ransomwareCount++;
+        } else {
+            benignCount++;
+        }
+    });
+
+    const ctx = document.getElementById("threatChart").getContext("2d");
+
+    new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Ransomware", "Benign"],
+            datasets: [{
+                data: [ransomwareCount, benignCount],
+                backgroundColor: [
+                    "rgba(255, 77, 109, 0.85)",
+                    "rgba(45, 212, 191, 0.85)"
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "70%",
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "white",
+                        font: { size: 14 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ": " + context.raw + " windows";
+                        }
+                    }
+                }
+            }
+        },
+        plugins: [centerTextPlugin]
+    });
+
+}).catch((error) => {
+    console.error("Analytics error:", error);
+});
+</script>
+
+</body>
+</html>

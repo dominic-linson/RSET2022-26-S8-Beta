@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RBDS Logs</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<!-- Firebase COMPAT SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+</head>
+
+<body class="dark-bg">
+
+<nav class="navbar navbar-dark bg-black px-4 shadow">
+    <span class="navbar-brand fw-bold">RBDS Logs</span>
+
+    <div>
+        <a href="index.html" class="nav-link d-inline text-light">Dashboard</a>
+        <a href="logs.html" class="nav-link d-inline text-light">Logs</a>
+        <a href="analytics.html" class="nav-link d-inline text-light">Analytics</a>
+    </div>
+</nav>
+
+<div class="container mt-4">
+
+<div class="card bg-dark border-secondary shadow-lg">
+<div class="card-header fs-5 fw-semibold">System Logs</div>
+
+<div class="card-body">
+<div class="table-responsive">
+
+<table class="table table-dark table-hover align-middle">
+<thead>
+<tr>
+<th>Window ID</th>
+<th>LightGBM Verdict</th>
+<th>LSTM Verdict</th>
+<th>Action Taken</th>
+<th>Timestamp</th>
+</tr>
+</thead>
+
+<tbody id="logsTable">
+<tr>
+<td colspan="5" class="text-center text-muted">Loading logs...</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
+</div>
+</div>
+
+</div>
+
+<!-- AUTH -->
+<script src="js/auth.js"></script>
+<script>
+checkAuth();
+</script>
+
+<!-- 🔥 FIREBASE INITIALIZATION -->
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAUvoAxwLMgwxwStJK4Q_xyGumLLY2kNU8",
+  authDomain: "rbd-model.firebaseapp.com",
+  projectId: "rbd-model",
+  storageBucket: "rbd-model.firebasestorage.app",
+  messagingSenderId: "497139499566",
+  appId: "1:497139499566:web:d05c0357fdcb5f1891d5bf",
+  measurementId: "G-BB11ZXYQG7"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Initialize Firestore
+const db = firebase.firestore();
+
+// ✅ PROPER TIMESTAMP SORT (LATEST FIRST)
+db.collection("research")
+  .orderBy("timestamp", "desc")
+  .get()
+  .then((querySnapshot) => {
+
+    const table = document.getElementById("logsTable");
+    table.innerHTML = "";
+
+    if (querySnapshot.empty) {
+        table.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-warning text-center">
+                No logs found in Firestore
+            </td>
+        </tr>`;
+        return;
+    }
+
+    querySnapshot.forEach((doc) => {
+
+        const data = doc.data();
+
+        // ✅ Convert Firestore timestamp safely
+        let formattedTime = "-";
+        if (data.timestamp && data.timestamp.toDate) {
+            formattedTime = data.timestamp.toDate().toLocaleString('en-IN');
+        }
+
+        table.innerHTML += `
+        <tr>
+            <td>${doc.id}</td>
+            <td class="text-warning">${data.lightgbm || "-"}</td>
+            <td class="text-info">${data.lstm || "-"}</td>
+            <td class="${data.action === "kill" ? "text-danger" : "text-success"}">
+                ${data.action || "-"}
+            </td>
+            <td class="text-secondary">${formattedTime}</td>
+        </tr>
+        `;
+    });
+
+}).catch((error) => {
+
+    console.error("Firestore error:", error);
+
+    document.getElementById("logsTable").innerHTML = `
+    <tr>
+        <td colspan="5" class="text-danger text-center">
+            Error loading Firestore data
+        </td>
+    </tr>`;
+});
+</script>
+
+</body>
+</html>
